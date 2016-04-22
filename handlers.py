@@ -2,8 +2,6 @@ import tornado.websocket
 import tornado.web
 import tornado.gen
 from utils import shelve_save, shelve_get
-import config
-import time
 
 
 class Base(tornado.websocket.WebSocketHandler):
@@ -18,8 +16,8 @@ class AdminLogin(Base):
         self.render('admin/login.html')
 
     def post(self):
-        if self.get_argument('name', None) == 'admin' and \
-                        self.get_argument('password', None) == '111':
+        if self.get_argument('name', None) == shelve_get('admin_name') and \
+                        self.get_argument('password', None) == shelve_get('admin_password'):
             self.set_secure_cookie('user', 'admin')
             self.redirect('/admin')
             return
@@ -36,7 +34,6 @@ class Admin(Base):
     @tornado.gen.coroutine
     def post(self):
         required_fields = ('version', )
-        print(self.get_argument('version'))
         save_dict = {}
         for field in required_fields:
             save_dict[field] = self.get_argument(field)
@@ -51,7 +48,6 @@ class CheckForUpdates(Base):
         return True
 
     def open(self):
-        print('Open socket')
         self.write_message('Current version is %s' % self.application.version)
 
     def on_message(self, message):
